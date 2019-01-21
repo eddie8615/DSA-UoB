@@ -1,0 +1,4 @@
+The .README.txt file is included to make GIT add this directory: GIT does not
+add empty directories: it only tracks files and the directories that are added
+are a side-effect of that. By putting this trivial file here, it forces GIT to
+make the (effectively empty) directory.
