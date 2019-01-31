@@ -21,14 +21,18 @@ public class DroneTest
 {
 	private static final Logger logger        = Logger.getLogger(DroneTest.class);
 
-	private static Maze         baseMaze      = new Maze(4, 2.3, 999);
+	private static int			numChambers		= 4 ;
+	private static double		avgDoorsPerChamber = 2.3;
+	
+	private static Maze         baseMaze      = new Maze(numChambers, avgDoorsPerChamber, 999);
+
 
 	@Rule
 	public Timeout              globalTimeout = new Timeout(2000, TimeUnit.MILLISECONDS);
 
 	/**
-	 * Not a test. This is just to log the maze used To disable, turn the
-	 * "BeforeClass" into "Ignore"
+	 * Not a test. This is just to log the maze used
+	 * To disable, turn the "BeforeClass" into "Ignore"
 	 */
 	@BeforeClass
 	public static void logMazeAndVisitsAndBackPath()
@@ -37,11 +41,13 @@ public class DroneTest
 		logger.debug("Maze in toString format:\n" + maze);
 		logger.debug("Maze in dot format:\n" + maze.toDotFormat());
 	}
+	
+	
 
 	/**
-	 * Not a test. This is just to log the visits and back paths at each step in
-	 * the execution of a search. To disable, turn the "BeforeClass" into
-	 * "Ignore"
+	 * Not a test. This is just to log the visits and back paths at each step in the execution
+	 * of a search.
+	 * To disable, turn the "BeforeClass" into "Ignore"
 	 */
 	@BeforeClass
 	public static void logDroneVisitsAndBackPath()
@@ -99,24 +105,55 @@ public class DroneTest
 		assertNotNull("Result of reversing single drone search step", portal);
 		assertEquals("Result chamber of reversing single drone search step", 0, maze.getCurrentChamber());
 	}
-
+	
 	@Test
 	public void testDroneSearch()
 	{
 		Maze maze = new Maze(baseMaze, true);
 
 		DroneInterface drone = new Drone(maze);
-
 		Portal portal = null;
-		int prevChamber = -1; // for checking that the drone actual moves each step
+		int prevChamber = 0; // for checking that the drone actual moves each step
 		int numSteps = 0;
+		
+		// This is so that we can tick off each chamber in the maze that we have to visit
+		Set<Integer> chambersToVisit = new HashSet<>(numChambers);
+		// Add all the chambers in the maze to the set of chambers that must be visited
+		for (int i = 0 ; i < numChambers ; i++)
+			chambersToVisit.add(i);
+		
+		// To record the set of all Portals that we enter a chamber through
+		// Since we pass through each portal once to enter each chamber (and once to leave it)
+		// this is sufficient to record every portal in the maze so long as we enter every
+		// chamber in maze
+		Set<Portal> portalSet = new HashSet<>();
+		
+		// for counting the total number of portals in the maze
+		int portalCount = 0;
+		
+		// Note: chamber 0 is covered (with respect to checking visits and portals), not on
+		// the first iteration, but at least on the last, if not before
+		
 		while ((portal = drone.searchStep()) != null)
 		{
 			numSteps++;
 			assertEquals("Drone search current chamber", maze.getCurrentChamber(), portal.getChamber());
 			assertNotEquals("Drone search chamber hasn't changed", prevChamber, maze.getCurrentChamber());
 			prevChamber = maze.getCurrentChamber();
+
+			// Have now visited this chamber: remove it from the set of chambers to visit and,
+			// if its the first time we visit this chamber, add in the number of doors
+			// of this chamber to the total portal count.
+			if (chambersToVisit.remove(prevChamber))
+				portalCount += maze.getNumDoors() ;
+			
+			// add the portal we arrived through to the set of all portals. Since we pass
+			// through each passage in both directions, that will get all the portals
+			portalSet.add(portal);
 		}
+		assertEquals("A completed search must visit every chamber: number of chambers unvisited", 0, chambersToVisit.size());
+		assertEquals("A completed search must pass through every portal: number of portals used", portalCount, portalSet.size());
+		assertEquals("A completed search must terminate in chamber 0", 0, maze.getCurrentChamber());
 		assertNotEquals("A search of a Maze with 2 or more chambers must take more than 0 steps", 0, numSteps);
 		assertSame("Drone: Finished search", null, portal);
 	}
@@ -136,7 +173,7 @@ public class DroneTest
 		assertSame("Drone: Finished search", null, portal);
 
 		Portal[] visitOrder = drone.getVisitOrder();
-
+		
 		// New maze copy, but reset the current chamber to 0:
 		mazeCopy = new Maze(maze, true);
 
@@ -156,6 +193,7 @@ public class DroneTest
 		assertEquals("Following the full visit order must end in chamber 0", 0, mazeCopy.getCurrentChamber());
 	}
 
+	
 	@Test
 	public void testDroneAllVisitOrders()
 	{
@@ -169,7 +207,7 @@ public class DroneTest
 		while ((portal = drone.searchStep()) != null)
 		{
 			visitOrder = drone.getVisitOrder();
-
+			
 			// New maze copy, but reset the current chamber to 0:
 			mazeCopy = new Maze(maze, true);
 
@@ -196,6 +234,7 @@ public class DroneTest
 		assertEquals("The visit order must end in chamber 0", 0, visitOrder[visitOrder.length - 1].getChamber());
 	}
 
+	
 	@Test
 	public void testDroneSimpleBackPath()
 	{
@@ -233,10 +272,10 @@ public class DroneTest
 		Portal[] pathBack = null;
 		Set<Integer> chamberSet = new HashSet<>();
 
-		int numSteps = 0;
+		int numSteps = 0 ;
 		while ((portal = drone.searchStep()) != null)
 		{
-			numSteps++;
+			numSteps++ ;
 			pathBack = drone.findPathBack();
 			mazeCopy = new Maze(maze, false); // Don't reset the current chamber
 			chamberSet.clear();
@@ -249,7 +288,7 @@ public class DroneTest
 				assertTrue("Second time visiting this chamber while following path back", chamberSet.add(srcPortal.getChamber()));
 			}
 			assertTrue("Already visited chamber 0 before finished following back path", chamberSet.add(0));
-
+			
 			assertEquals("Following the full path back must end in chamber 0", 0, mazeCopy.getCurrentChamber());
 		}
 		assertNotEquals("A search of a Maze with 2 or more chambers must take more than 0 steps", 0, numSteps);
