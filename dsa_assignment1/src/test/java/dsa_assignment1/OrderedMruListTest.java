@@ -4,10 +4,12 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
+@Ignore
 public class OrderedMruListTest
 {
 	@Rule
