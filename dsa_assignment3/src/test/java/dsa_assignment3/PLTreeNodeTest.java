@@ -109,8 +109,6 @@ public class PLTreeNodeTest
 		typeList = new NodeType[] { NodeType.R, NodeType.P, NodeType.IMPLIES, NodeType.S, NodeType.IMPLIES, NodeType.NOT, NodeType.Q,
 				NodeType.IMPLIES };
 		logger.debug("typeList: " + Arrays.toString(typeList));
-		typeListReturned = pltree.getReversePolish();
-		logger.debug("typeListReturned: " + Arrays.toString(typeListReturned));
 
 		pltree = PLTreeNode.reversePolishBuilder(typeList);
 		logger.debug("Constructed: " + pltree.toStringPrefix());
@@ -146,54 +144,76 @@ public class PLTreeNodeTest
 		logger.debug(String.format("pushOrBelowAnd: %s", pltree.toStringInfix()));
 		typeListReturned = pltree.getReversePolish();
 		logger.debug("typeListReturned: " + Arrays.toString(typeListReturned));
+		
+		
+		//===========================
+
+		logger.debug("Extra tests of pushOrBelowAnd()");
+		typeList = new NodeType[] { NodeType.A, NodeType.B, NodeType.AND, NodeType.C, NodeType.AND, NodeType.D, NodeType.OR, NodeType.E, NodeType.OR};
+		logger.debug("typeList: " + Arrays.toString(typeList));
+		pltree = PLTreeNode.reversePolishBuilder(typeList);
+		logger.debug("Constructed: " + pltree.toStringPrefix());
+		logger.debug("Constructed: " + pltree.toStringInfix());
+		typeListReturned = pltree.getReversePolish();
+		logger.debug("typeListReturned: " + Arrays.toString(typeListReturned));
+
+		pltree.pushOrBelowAnd();
+		logger.debug(String.format("pushOrBelowAnd: %s", pltree.toStringPrefix()));
+		logger.debug(String.format("pushOrBelowAnd: %s", pltree.toStringInfix()));
+		typeListReturned = pltree.getReversePolish();
+		logger.debug("typeListReturned: " + Arrays.toString(typeListReturned));
+
 	}
 	/*
 	 To assist you in writing your tests, the log output from the solution to
 	 the exercise for the above code is included below. You may find it useful
 	 to copy and paste some of the strings below into some of your tests.
+	
+		VEERSION 2: after correcting an error in pushOrBelowAnd()
 	 
-	typeList: [R, P, OR, TRUE, Q, NOT, AND, IMPLIES]
-	Constructed: implies(or(R,P),and(true,not(Q)))
-	Constructed: ((R∨P)→(⊤∧¬Q))
-	typeListReturned: [R, P, OR, TRUE, Q, NOT, AND, IMPLIES]
-	Applied bindings : {P=true, R=false} to get: implies(or(false,true),and(true,not(Q)))
-	Applied bindings : {P=true, R=false} to get: ((⊥∨⊤)→(⊤∧¬Q))
-	typeListReturned: [FALSE, TRUE, OR, TRUE, Q, NOT, AND, IMPLIES]
-	Eliminate Implies: or(not(or(false,true)),and(true,not(Q)))
-	Eliminate Implies: (¬(⊥∨⊤)∨(⊤∧¬Q))
-	typeListReturned: [FALSE, TRUE, OR, NOT, TRUE, Q, NOT, AND, OR]
-	pushNotDown: or(and(not(false),not(true)),and(true,not(Q)))
-	pushNotDown: ((¬⊥∧¬⊤)∨(⊤∧¬Q))
-	typeListReturned: [FALSE, NOT, TRUE, NOT, AND, TRUE, Q, NOT, AND, OR]
-	pushOrBelowAnd: and(or(not(false),and(true,not(Q))),or(not(true),and(true,not(Q))))
-	pushOrBelowAnd: ((¬⊥∨(⊤∧¬Q))∧(¬⊤∨(⊤∧¬Q)))
-	typeListReturned: [FALSE, NOT, TRUE, Q, NOT, AND, OR, TRUE, NOT, TRUE, Q, NOT, AND, OR, AND]
-	makeAndOrRightDeep: and(or(not(false),and(true,not(Q))),or(not(true),and(true,not(Q))))
-	makeAndOrRightDeep: ((¬⊥∨(⊤∧¬Q))∧(¬⊤∨(⊤∧¬Q)))
-	typeListReturned: [FALSE, NOT, TRUE, Q, NOT, AND, OR, TRUE, NOT, TRUE, Q, NOT, AND, OR, AND]
-	Evaluate constant subtrees to get: not(Q)
-	Evaluate constant subtrees to get: ¬Q
-	typeListReturned: [Q, NOT]
-	typeList: [R, P, IMPLIES, S, IMPLIES, NOT, Q, IMPLIES]
-	typeListReturned: [Q, NOT]
-	Constructed: implies(not(implies(implies(R,P),S)),Q)
-	Constructed: (¬((R→P)→S)→Q)
-	typeListReturned: [R, P, IMPLIES, S, IMPLIES, NOT, Q, IMPLIES]
-	ReduceToCNF to get: and(or(R,or(S,Q)),or(not(P),or(S,Q)))
-	ReduceToCNF to get: ((R∨(S∨Q))∧(¬P∨(S∨Q)))
-	typeListReturned: [R, S, Q, OR, OR, P, NOT, S, Q, OR, OR, AND]
-	Evaluate constant subtrees to get: and(or(R,or(S,Q)),or(not(P),or(S,Q)))
-	Evaluate constant subtrees to get: ((R∨(S∨Q))∧(¬P∨(S∨Q)))
-	typeListReturned: [R, S, Q, OR, OR, P, NOT, S, Q, OR, OR, AND]
-	typeList: [A, B, AND, C, OR, D, OR, E, OR, F, OR, G, OR, H, OR]
-	Constructed: or(or(or(or(or(or(and(A,B),C),D),E),F),G),H)
-	Constructed: (((((((A∧B)∨C)∨D)∨E)∨F)∨G)∨H)
-	typeListReturned: [A, B, AND, C, OR, D, OR, E, OR, F, OR, G, OR, H, OR]
-	pushOrBelowAnd: and(or(or(or(or(or(or(A,C),D),E),F),G),H),or(or(or(or(or(or(B,C),D),E),F),G),H))
-	pushOrBelowAnd: (((((((A∨C)∨D)∨E)∨F)∨G)∨H)∧((((((B∨C)∨D)∨E)∨F)∨G)∨H))
-	typeListReturned: [A, C, OR, D, OR, E, OR, F, OR, G, OR, H, OR, B, C, OR, D, OR, E, OR, F, OR, G, OR, H, OR, AND]
+	 typeList: [R, P, OR, TRUE, Q, NOT, AND, IMPLIES]
+	 Constructed: implies(or(R,P),and(true,not(Q)))
+	 Constructed: ((R∨P)→(⊤∧¬Q))
+	 typeListReturned: [R, P, OR, TRUE, Q, NOT, AND, IMPLIES]
+	 Applied bindings : {P=true, R=false} to get: implies(or(false,true),and(true,not(Q)))
+	 Applied bindings : {P=true, R=false} to get: ((⊥∨⊤)→(⊤∧¬Q))
+	 typeListReturned: [FALSE, TRUE, OR, TRUE, Q, NOT, AND, IMPLIES]
+	 Eliminate Implies: or(not(or(false,true)),and(true,not(Q)))
+	 Eliminate Implies: (¬(⊥∨⊤)∨(⊤∧¬Q))
+	 typeListReturned: [FALSE, TRUE, OR, NOT, TRUE, Q, NOT, AND, OR]
+	 pushNotDown: or(and(not(false),not(true)),and(true,not(Q)))
+	 pushNotDown: ((¬⊥∧¬⊤)∨(⊤∧¬Q))
+	 typeListReturned: [FALSE, NOT, TRUE, NOT, AND, TRUE, Q, NOT, AND, OR]
+	 pushOrBelowAnd: and(or(not(false),and(true,not(Q))),or(not(true),and(true,not(Q))))
+	 pushOrBelowAnd: ((¬⊥∨(⊤∧¬Q))∧(¬⊤∨(⊤∧¬Q)))
+	 typeListReturned: [FALSE, NOT, TRUE, Q, NOT, AND, OR, TRUE, NOT, TRUE, Q, NOT, AND, OR, AND]
+	 makeAndOrRightDeep: and(or(not(false),and(true,not(Q))),or(not(true),and(true,not(Q))))
+	 makeAndOrRightDeep: ((¬⊥∨(⊤∧¬Q))∧(¬⊤∨(⊤∧¬Q)))
+	 typeListReturned: [FALSE, NOT, TRUE, Q, NOT, AND, OR, TRUE, NOT, TRUE, Q, NOT, AND, OR, AND]
+	 Evaluate constant subtrees to get: not(Q)
+	 Evaluate constant subtrees to get: ¬Q
+	 typeListReturned: [Q, NOT]
+	 typeList: [R, P, IMPLIES, S, IMPLIES, NOT, Q, IMPLIES]
+	 typeListReturned: [Q, NOT]
+	 Constructed: implies(not(implies(implies(R,P),S)),Q)
+	 Constructed: (¬((R→P)→S)→Q)
+	 typeListReturned: [R, P, IMPLIES, S, IMPLIES, NOT, Q, IMPLIES]
+	 ReduceToCNF to get: and(or(R,or(S,Q)),or(not(P),or(S,Q)))
+	 ReduceToCNF to get: ((R∨(S∨Q))∧(¬P∨(S∨Q)))
+	 typeListReturned: [R, S, Q, OR, OR, P, NOT, S, Q, OR, OR, AND]
+	 Evaluate constant subtrees to get: and(or(R,or(S,Q)),or(not(P),or(S,Q)))
+	 Evaluate constant subtrees to get: ((R∨(S∨Q))∧(¬P∨(S∨Q)))
+	 typeListReturned: [R, S, Q, OR, OR, P, NOT, S, Q, OR, OR, AND]
+	 typeList: [A, B, AND, C, OR, D, OR, E, OR, F, OR, G, OR, H, OR]
+	 Constructed: or(or(or(or(or(or(and(A,B),C),D),E),F),G),H)
+	 Constructed: (((((((A∧B)∨C)∨D)∨E)∨F)∨G)∨H)
+	 typeListReturned: [A, B, AND, C, OR, D, OR, E, OR, F, OR, G, OR, H, OR]
+	 pushOrBelowAnd: and(or(or(or(or(or(or(A,C),D),E),F),G),H),or(or(or(or(or(or(B,C),D),E),F),G),H))
+	 pushOrBelowAnd: (((((((A∨C)∨D)∨E)∨F)∨G)∨H)∧((((((B∨C)∨D)∨E)∨F)∨G)∨H))
+	 typeListReturned: [A, C, OR, D, OR, E, OR, F, OR, G, OR, H, OR, B, C, OR, D, OR, E, OR, F, OR, G, OR, H, OR, AND]
+
+
 	
 	*/
-	
-	
+
 }
